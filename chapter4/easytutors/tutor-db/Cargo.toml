@@ -14,7 +14,6 @@ dotenv = "0.15.0"
 # Database access
 sqlx = {version = "0.6.2", default_features = false, features = ["postgres","runtime-tokio-native-tls", "macros","chrono"]}
 
-
 # Data serialization library
 serde = { version = "1.0.144", features = ["derive"] }
 
