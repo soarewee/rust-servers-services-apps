@@ -26,7 +26,7 @@ pub async fn get_course_details_db(pool: &PgPool, tutor_id: i32, course_id: i32)
         FROM ezy_course_c4 where tutor_id = $1 and course_id = $2",
         tutor_id, course_id
     )
-    .fetch_all(pool)
+    .fetch_one(pool)
     .await
     .unwrap();
     Course {
