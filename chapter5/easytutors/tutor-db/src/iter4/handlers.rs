@@ -1,6 +1,7 @@
 use super::db_access::*;
 use super::state::AppState;
 use super::models::Course;
+use super::errors::EzyTutorError;
 use std::convert::TryFrom;
 
 use actix_web::{web, HttpResponse};
@@ -17,10 +18,11 @@ pub async fn health_check_handler(app_state: web::Data<AppState>) ->
 pub async fn get_courses_for_tutor(
     app_state: web::Data<AppState>,
     params: web::Path<(i32,)>,
-) -> HttpResponse {
+) -> Result<HttpResponse, EzyTutorError> {
     let tutor_id: i32 = params.0;
-    let courses = get_courses_for_tutor_db(&app_state.db, tutor_id).await;
-    HttpResponse::Ok().json(courses)
+    get_courses_for_tutor_db(&app_state.db, tutor_id)
+        .await
+        .map(|courses| HttpResponse::Ok().json(courses))
 }
 
 pub async fn get_course_details(
