@@ -27,19 +27,21 @@ pub async fn get_courses_for_tutor(
 
 pub async fn get_course_details(
     app_state: web::Data<AppState>,
-    params: web::Path<(i32, i32)>,
-) -> HttpResponse {
-    let (tutor_id, course_id) = (params.0,params.1);
-    let course = get_course_details_db(&app_state.db, tutor_id, course_id).await;
-    HttpResponse::Ok().json(course)
+    path:  web::Path<(i32, i32)>,
+) -> Result<HttpResponse, EzyTutorError> {
+    let (tutor_id, course_id) = path.into_inner();
+    get_course_details_db(&app_state.db, tutor_id, course_id)
+        .await
+        .map(|course| HttpResponse::Ok().json(course))
 }
 
 pub async fn post_new_course(
     new_course: web::Json<Course>,
     app_state: web::Data<AppState>,
-) -> HttpResponse {
-    let course = post_new_course_db(&app_state.db, new_course.into()).await;
-    HttpResponse::Ok().json(course)
+) -> Result<HttpResponse, EzyTutorError> {
+    post_new_course_db(&app_state.db, new_course.into())
+        .await
+        .map(|course| HttpResponse::Ok().json(course))
 }
 
 #[cfg(test)]
@@ -63,7 +65,7 @@ mod tests {
             db: pool,
         });
         let tutor_id: web::Path<(i32,)> = web::Path::from((1,));
-        let resp = get_courses_for_tutor(app_state, tutor_id).await;
+        let resp = get_courses_for_tutor(app_state, tutor_id).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
     }
 
@@ -78,7 +80,7 @@ mod tests {
             db: pool,
         });
         let params: web::Path<(i32, i32)> = web::Path::from((1, 1));
-        let resp = get_course_details(app_state, params).await;
+        let resp = get_course_details(app_state, params).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
     }
 
@@ -99,7 +101,7 @@ mod tests {
             posted_time: Some(NaiveDate::from_ymd(2020, 12, 18).and_hms(05, 40, 00)),
         };
         let course_param = web::Json(new_course_msg);
-        let resp = post_new_course(course_param, app_state).await;
+        let resp = post_new_course(course_param, app_state).await.unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
     }
 }
